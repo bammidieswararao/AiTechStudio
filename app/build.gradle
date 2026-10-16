@@ -1,0 +1,69 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
+
+def withVosk = (project.findProperty('withVosk') ?: 'false').toString() == 'true'
+def voskVersion = (project.findProperty('voskVersion') ?: '0.3.47').toString()
+
+android {
+    namespace 'com.aitechapps.studio'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'com.aitechapps.studio'
+        minSdk 26
+        targetSdk 35
+        versionCode 1
+        versionName '1.0.0'
+        // Phones only. Keeps the APK small and avoids x86 emulator libraries.
+        ndk { abiFilters 'arm64-v8a', 'armeabi-v7a' }
+    }
+
+    // Optional: sign with your own key by setting these environment variables (the GitHub workflow
+    // does this when the matching repository secrets exist). Otherwise the standard debug key is used,
+    // which is fine for installing on your own phone.
+    signingConfigs {
+        if (System.getenv('STUDIO_KEYSTORE')) {
+            release {
+                storeFile file(System.getenv('STUDIO_KEYSTORE'))
+                storePassword System.getenv('STUDIO_KEYSTORE_PASSWORD')
+                keyAlias System.getenv('STUDIO_KEY_ALIAS')
+                keyPassword System.getenv('STUDIO_KEY_PASSWORD')
+            }
+        }
+    }
+
+    buildTypes {
+        // Test build: installs next to the release build (different app id) and shows "(debug)" in its name.
+        debug {
+            applicationIdSuffix '.debug'
+            versionNameSuffix '-debug'
+        }
+        release {
+            minifyEnabled false
+            signingConfig System.getenv('STUDIO_KEYSTORE') ? signingConfigs.release : signingConfigs.debug
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions { jvmTarget = '17' }
+
+    packaging {
+        // Vosk / JNA load their .so files from disk, so keep them extractable.
+        jniLibs { useLegacyPackaging = true }
+    }
+
+    buildFeatures { buildConfig = false }
+    lint { abortOnError = false }
+}
+
+dependencies {
+    if (withVosk) {
+        implementation 'net.java.dev.jna:jna:5.13.0@aar'
+        implementation "com.alphacephei:vosk-android:${voskVersion}"
+    }
+}

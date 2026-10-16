@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>AiTech Studio</title>
+<style>
+:root{
+  --ink:#10141a; --panel:#181e27; --raise:#212936; --line:#2a3342; --text:#edf0f5; --muted:#8c97a9;
+  --gold:#ffb21e; --gold-d:#d98f00; --teal:#35d0c0; --red:#ff5d6c; --r:12px;
+  --head:"sans-serif-condensed","Roboto Condensed",sans-serif; --body:sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--ink);color:var(--text);font:14px/1.4 var(--body);overflow:hidden;touch-action:manipulation}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+input,select,textarea{font:inherit;color:var(--text)}
+#app{height:100%;display:flex;flex-direction:column}
+
+.top{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border-bottom:1px solid var(--line);flex:0 0 auto}
+.brand{display:flex;align-items:center;gap:9px;font:700 18px var(--head);letter-spacing:.2px}
+.mark{width:22px;height:22px;border-radius:6px;background:conic-gradient(from 210deg,var(--gold),#ff6a3d,var(--teal),var(--gold));position:relative}
+.mark:after{content:"";position:absolute;inset:6px;border-radius:3px;background:var(--ink)}
+.pill{font-size:11px;padding:3px 9px;border-radius:99px;border:1px solid var(--line);color:var(--muted)}
+.pill.ok{color:var(--teal);border-color:#1f5f58}
+
+.stage{flex:0 0 auto;padding:10px 14px 6px;background:#0b0e13;border-bottom:1px solid var(--line)}
+.pvbox{height:min(40vh,380px);min-height:200px;display:flex;align-items:center;justify-content:center}
+#pv{background:#000;border-radius:6px;box-shadow:0 0 0 1px var(--line),0 12px 32px rgba(0,0,0,.5)}
+.transport{display:flex;align-items:center;gap:10px;margin-top:8px}
+#btnPlay{width:36px;height:36px;border-radius:50%;background:var(--gold);color:#201400;font-size:15px;flex:0 0 auto;display:grid;place-items:center}
+#tl{flex:1;height:36px;min-width:0;touch-action:none}
+#tcode{font:12px monospace;color:var(--muted);flex:0 0 auto;min-width:74px;text-align:right}
+
+.tabs{display:flex;gap:4px;padding:8px 10px 0;flex:0 0 auto;overflow-x:auto;scrollbar-width:none}
+.tabs button{padding:8px 14px;border-radius:10px 10px 0 0;color:var(--muted);font:700 15px var(--head);white-space:nowrap}
+.tabs button.on{background:var(--panel);color:var(--gold);box-shadow:inset 0 -2px 0 var(--gold)}
+#panels{flex:1;min-height:0;overflow-y:auto;background:var(--panel);padding:14px 14px 90px;-webkit-overflow-scrolling:touch}
+.panel{display:none}.panel.on{display:block}
+
+h3{font:700 16px var(--head);margin:18px 0 8px}
+h3:first-child{margin-top:0}
+.hint{color:var(--muted);font-size:12.5px;margin:4px 0 8px}
+.field{display:block;margin:0 0 10px}
+.field>span{display:block;font-size:12.5px;color:var(--muted);margin-bottom:4px}
+.field input[type=text],.field input[type=number],.field select,.field textarea{width:100%;background:var(--ink);border:1px solid var(--line);border-radius:9px;padding:10px 11px;outline:0}
+.field textarea{min-height:76px;resize:vertical}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--gold)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 10px}
+.chips button{padding:7px 12px;border-radius:99px;background:var(--raise);border:1px solid var(--line)}
+.chips button.on{background:var(--gold);border-color:var(--gold);color:#241700;font-weight:700}
+.chips button small{display:block;font-size:10.5px;opacity:.75;font-weight:400}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row b{font-weight:600;display:block}
+.row small{color:var(--muted);font-size:12px}
+.range{display:grid;grid-template-columns:1fr 52px;gap:10px;align-items:center;margin:0 0 6px}
+.range label{grid-column:1/-1;font-size:12.5px;color:var(--muted)}
+.range output{font:12px monospace;color:var(--text);text-align:right}
+input[type=range]{-webkit-appearance:none;appearance:none;height:28px;background:transparent;width:100%}
+input[type=range]::-webkit-slider-runnable-track{height:5px;border-radius:3px;background:var(--line)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--gold);margin-top:-8.5px;border:3px solid var(--panel);box-shadow:0 0 0 1px var(--gold-d)}
+.sw{position:relative;display:inline-block;width:46px;height:26px;flex:0 0 auto}
+.sw input{opacity:0;position:absolute;inset:0;width:100%;height:100%;margin:0}
+.sw i{position:absolute;inset:0;border-radius:99px;background:var(--line);transition:.15s}
+.sw i:after{content:"";position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.15s}
+.sw input:checked+i{background:var(--teal)}
+.sw input:checked+i:after{transform:translateX(20px)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 16px;border-radius:10px;background:var(--raise);border:1px solid var(--line);font-weight:600}
+.btn.primary{background:linear-gradient(180deg,var(--gold),#f59a00);color:#241700;border-color:#f59a00;font:700 16px var(--head);letter-spacing:.2px}
+.btn.block{display:flex;width:100%}
+.btn.danger{color:var(--red)}
+.btn:active{transform:translateY(1px)}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 10px}
+
+.scenes{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 10px;scrollbar-width:none;margin:0 -14px;padding-left:14px;padding-right:14px}
+.scene{flex:0 0 84px;text-align:left}
+.scene canvas{width:84px;height:140px;border-radius:8px;display:block;background:#000;box-shadow:0 0 0 1px var(--line)}
+.scene.on canvas{box-shadow:0 0 0 2px var(--gold)}
+.scene span{display:block;font:700 12.5px var(--head);margin-top:5px}
+.scene.on span{color:var(--gold)}
+.pals{display:flex;flex-wrap:wrap;gap:9px;margin:0 0 10px}
+.pal{width:44px;height:44px;border-radius:50%;box-shadow:0 0 0 1px var(--line);position:relative}
+.pal.on{box-shadow:0 0 0 3px var(--gold)}
+.pal span{position:absolute;left:0;right:0;bottom:-16px;text-align:center;font-size:10px;color:var(--muted)}
+.card{background:var(--ink);border:1px solid var(--line);border-radius:var(--r);padding:12px;margin:0 0 12px}
+.card.gold{border-color:#6b4a07;background:#1d1608}
+.stat{font:12.5px monospace;color:var(--teal)}
+.warn{color:var(--gold);font-size:12.5px}
+.tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:99px;background:var(--raise);color:var(--muted);margin-left:6px}
+details{margin:6px 0 10px}
+summary{cursor:pointer;color:var(--gold);padding:6px 0}
+code,.mono{font:12px monospace;background:var(--ink);border:1px solid var(--line);border-radius:7px;padding:8px 10px;display:block;white-space:pre-wrap;word-break:break-word;color:#cfe}
+
+#ov{position:fixed;inset:0;background:rgba(5,8,12,.86);display:none;align-items:center;justify-content:center;z-index:50;padding:24px}
+#ov.on{display:flex}
+#ov .box{width:100%;max-width:380px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px}
+#ov h2{font:700 22px var(--head);margin-bottom:4px}
+.bar{height:10px;border-radius:99px;background:var(--line);overflow:hidden;margin:14px 0 8px}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--teal));transition:width .15s}
+#ovLabel{font:12.5px monospace;color:var(--muted);word-break:break-word}
+#toast{position:fixed;left:14px;right:14px;bottom:18px;background:#2a3342;border:1px solid #3b475a;border-radius:11px;padding:11px 14px;z-index:60;display:none;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+#toast.on{display:block}
+#toast.err{border-color:var(--red)}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <div class="brand"><span class="mark"></span>AiTech Studio</div>
+    <span class="pill ok" id="netPill">Offline · no internet permission</span>
+  </header>
+
+  <section class="stage">
+    <div class="pvbox" id="pvbox"><canvas id="pv"></canvas></div>
+    <div class="transport">
+      <button id="btnPlay" aria-label="Play or pause">❚❚</button>
+      <canvas id="tl"></canvas>
+      <span id="tcode">0:00 / 0:06</span>
+    </div>
+  </section>
+  <video id="bgv" muted loop playsinline preload="auto" style="display:none"></video>
+
+  <nav class="tabs" id="tabs">
+    <button data-tab="design" class="on">Design</button>
+    <button data-tab="vfx">Effects</button>
+    <button data-tab="sound">Sound</button>
+    <button data-tab="voice">Voice</button>
+    <button data-tab="export">Export</button>
+  </nav>
+
+  <main id="panels">
+    <!-- DESIGN -->
+    <section class="panel on" data-panel="design">
+      <h3>Template</h3>
+      <div class="scenes" id="scenes"></div>
+
+      <h3>Text</h3>
+      <label class="field"><span>Title</span><input type="text" data-bind="cfg.title" maxlength="80"></label>
+      <label class="field"><span>Subtitle</span><input type="text" data-bind="cfg.subtitle" maxlength="100"></label>
+      <div class="two">
+        <label class="field"><span>Tagline</span><input type="text" data-bind="cfg.tagline" maxlength="80"></label>
+        <label class="field"><span>Phone or address</span><input type="text" data-bind="cfg.contact" maxlength="90"></label>
+      </div>
+      <h3>Font</h3>
+      <div class="chips" id="fontChips" data-chips="cfg.font"></div>
+      <h3>Text animation</h3>
+      <div class="chips" id="animChips" data-chips="cfg.anim"></div>
+
+      <h3>Colours</h3>
+      <div class="pals" id="pals" style="margin-bottom:22px"></div>
+      <div class="card" id="customPal" style="display:none">
+        <div class="hint">Enter hex colours, for example #22d3ee.</div>
+        <div class="two">
+          <label class="field"><span>Background top</span><input type="text" data-bind="cfg.custom.bg1" maxlength="7"></label>
+          <label class="field"><span>Background bottom</span><input type="text" data-bind="cfg.custom.bg2" maxlength="7"></label>
+          <label class="field"><span>Accent 1</span><input type="text" data-bind="cfg.custom.a1" maxlength="7"></label>
+          <label class="field"><span>Accent 2</span><input type="text" data-bind="cfg.custom.a2" maxlength="7"></label>
+        </div>
+        <label class="field"><span>Text</span><input type="text" data-bind="cfg.custom.text" maxlength="7"></label>
+      </div>
+
+      <h3>Logo</h3>
+      <div class="row"><div><b>Show logo above the title</b><small id="logoName">No logo added</small></div>
+        <label class="sw"><input type="checkbox" data-bind="cfg.logo"><i></i></label></div>
+      <div class="btnrow"><button class="btn" id="btnLogo">Add logo image</button></div>
+
+      <h3>AI video background</h3>
+      <div class="card gold">
+        <div class="hint">Use a clip made by an AI video model such as LongCat-Video as the backdrop. The model runs on a GPU computer, not on the phone. Copy the clip to this phone and the studio adds text, effects and sound offline.</div>
+        <div class="row"><div><b>Use video background</b><small id="bgName">No clip imported</small></div>
+          <label class="sw"><input type="checkbox" data-bind="cfg.bgVideo"><i></i></label></div>
+        <div class="btnrow"><button class="btn" id="btnBg">Import clip (MP4)</button><button class="btn danger" id="btnBgClear">Remove</button></div>
+        <div class="range"><label>Darken for readable text</label><input type="range" min="0" max="0.85" step="0.01" data-bind="cfg.bgDim"><output data-out="pct"></output></div>
+        <details><summary>Prompt for LongCat-Video</summary>
+          <div class="hint">Paste this into the text-to-video demo from the LongCat-Video repository. Its output is wide, so the studio crops the centre for tall formats.</div>
+          <code id="lcPrompt"></code>
+          <div class="btnrow"><button class="btn" id="btnCopyPrompt">Copy prompt</button></div>
+        </details>
+      </div>
+    </section>
+
+    <!-- EFFECTS -->
+    <section class="panel" data-panel="vfx">
+      <h3>Motion effects</h3>
+      <div id="fxList"></div>
+      <h3>Look</h3>
+      <div class="range"><label>Effect strength</label><input type="range" min="0" max="1" step="0.01" data-bind="cfg.intensity"><output data-out="pct"></output></div>
+      <div class="range"><label>Video length</label><input type="range" min="3" max="30" step="1" data-bind="cfg.duration"><output data-out="sec"></output></div>
+      <div class="btnrow"><button class="btn" id="btnShuffle">Shuffle particles</button></div>
+    </section>
+
+    <!-- SOUND -->
+    <section class="panel" data-panel="sound">
+      <div class="row"><div><b>Add sound to video</b><small>Effects are generated on the phone</small></div>
+        <label class="sw"><input type="checkbox" data-bind="audio.enabled"><i></i></label></div>
+      <h3>Sound effects style</h3>
+      <div class="chips" data-chips="cfg.sfxPack">
+        <button data-v="cinematic">Cinematic<small>riser, impact, pad</small></button>
+        <button data-v="tech">Tech<small>zaps, ticks, whoosh</small></button>
+        <button data-v="pop">Pop<small>pops, sparkle</small></button>
+        <button data-v="none">None<small>music or voice only</small></button>
+      </div>
+      <h3>Sound quality</h3>
+      <div class="chips" data-chips="audio.quality">
+        <button data-v="standard">Standard<small>44.1 kHz · 128 kbps</small></button>
+        <button data-v="high">High<small>48 kHz · 192 kbps</small></button>
+        <button data-v="studio">Studio<small>48 kHz · 256 kbps</small></button>
+      </div>
+      <h3>Mix</h3>
+      <div class="range"><label>Effects volume</label><input type="range" min="0" max="1" step="0.01" data-bind="audio.sfx"><output data-out="pct"></output></div>
+      <div class="range"><label>Bass</label><input type="range" min="-6" max="9" step="0.5" data-bind="audio.bass"><output data-out="db"></output></div>
+      <div class="range"><label>Air (treble sparkle)</label><input type="range" min="-6" max="9" step="0.5" data-bind="audio.air"><output data-out="db"></output></div>
+      <div class="range"><label>Space (reverb)</label><input type="range" min="0" max="1" step="0.01" data-bind="audio.space"><output data-out="pct"></output></div>
+      <div class="range"><label>Stereo width</label><input type="range" min="0" max="1" step="0.01" data-bind="audio.width"><output data-out="pct"></output></div>
+      <div class="range"><label>Punch (compressor)</label><input type="range" min="0" max="1" step="0.01" data-bind="audio.punch"><output data-out="pct"></output></div>
+
+      <h3>Music</h3>
+      <div class="card">
+        <div class="hint" id="musicName">No music added. MP3, M4A, WAV and OGG work.</div>
+        <div class="btnrow"><button class="btn" id="btnMusic">Add music</button><button class="btn danger" id="btnMusicClear">Remove</button></div>
+        <div class="range"><label>Music volume</label><input type="range" min="0" max="1" step="0.01" data-bind="musicOpts.gain"><output data-out="pct"></output></div>
+        <div class="range"><label>Skip first</label><input type="range" min="0" max="60" step="1" data-bind="musicOpts.start"><output data-out="sec"></output></div>
+        <div class="row"><div><b>Lower music while voice speaks</b></div><label class="sw"><input type="checkbox" data-bind="musicOpts.duck"><i></i></label></div>
+      </div>
+      <div class="btnrow"><button class="btn primary block" id="btnPreviewSound">Preview sound</button></div>
+    </section>
+
+    <!-- VOICE -->
+    <section class="panel" data-panel="voice">
+      <h3>Voice-over</h3>
+      <label class="field"><span>Script</span><textarea data-bind="voiceOpts.script" placeholder="Type what the voice should say"></textarea></label>
+      <div class="btnrow"><button class="btn" id="btnScriptFromTitle">Use title text</button></div>
+      <label class="field"><span>Voice <span class="tag" id="voiceCount"></span></span><select id="voiceSel" data-bind="voiceOpts.voice"></select></label>
+      <div class="hint" id="voiceHint">Only voices stored on this phone are listed. Install a language in Android text-to-speech settings to add more, including Telugu and Hindi.</div>
+      <div class="range"><label>Speed</label><input type="range" min="0.5" max="1.6" step="0.05" data-bind="voiceOpts.rate"><output data-out="x"></output></div>
+      <div class="range"><label>Pitch</label><input type="range" min="0.6" max="1.5" step="0.05" data-bind="voiceOpts.pitch"><output data-out="x"></output></div>
+      <div class="btnrow"><button class="btn primary" id="btnSynth">Create voice-over</button><button class="btn" id="btnVoiceFile">Use my recording</button><button class="btn danger" id="btnVoiceClear">Remove</button></div>
+      <div class="stat" id="voiceStatus">No voice-over yet</div>
+
+      <h3>Voice effect</h3>
+      <div class="chips" data-chips="voiceOpts.fx">
+        <button data-v="clean">Clean</button><button data-v="studio">Studio</button><button data-v="radio">Radio</button>
+        <button data-v="robot">Robot</button><button data-v="hall">Hall</button><button data-v="echo">Echo</button><button data-v="warm">Warm</button>
+      </div>
+      <div class="range"><label>Voice volume</label><input type="range" min="0" max="1.5" step="0.05" data-bind="voiceOpts.gain"><output data-out="pct"></output></div>
+      <div class="range"><label>Voice starts at</label><input type="range" min="0" max="10" step="0.1" data-bind="voiceOpts.start"><output data-out="sec1"></output></div>
+
+      <h3>Captions</h3>
+      <div class="row"><div><b>Show captions</b><small id="capCount">No captions yet</small></div><label class="sw"><input type="checkbox" data-bind="cfg.captionsOn"><i></i></label></div>
+      <div class="chips" data-chips="cfg.captionStyle"><button data-v="karaoke">Karaoke</button><button data-v="pop">One word</button><button data-v="bar">Bar</button></div>
+      <h3>Caption timing</h3>
+      <div class="chips" data-chips="caps.source">
+        <button data-v="script">Script timing<small>no model needed</small></button>
+        <button data-v="model">Offline AI model<small>listens to the voice</small></button>
+      </div>
+      <div class="card" id="modelCard" style="display:none">
+        <div class="hint" id="modelHint">Speech models run fully on the phone. Download a small Vosk model on another device (for example vosk-model-small-en-us), then import its .zip here once.</div>
+        <label class="field"><span>Installed model</span><select id="modelSel" data-bind="caps.model"></select></label>
+        <div class="btnrow"><button class="btn" id="btnModel">Import model (.zip)</button></div>
+      </div>
+      <div class="btnrow"><button class="btn primary block" id="btnCaps">Build captions</button></div>
+    </section>
+
+    <!-- EXPORT -->
+    <section class="panel" data-panel="export">
+      <div class="chips" data-chips="exportTab" id="exportTabs">
+        <button data-v="video">Video (MP4)</button><button data-v="png">Image (PNG / print)</button>
+      </div>
+
+      <div id="exVideo">
+        <h3>Size</h3>
+        <div class="chips" id="vSizes"></div>
+        <h3>Frame rate</h3>
+        <div class="chips" data-chips="video.fps"><button data-v="24">24</button><button data-v="30">30</button><button data-v="60">60<small>slower</small></button></div>
+        <h3>Video quality</h3>
+        <div class="chips" data-chips="video.quality"><button data-v="standard">Standard</button><button data-v="high">High</button><button data-v="max">Maximum</button></div>
+        <div class="stat" id="vEstimate"></div>
+        <div class="btnrow"><button class="btn primary block" id="btnRenderVideo">Render MP4</button></div>
+        <div class="hint">Keep the screen on while rendering. The finished file is saved to Movies/AiTechStudio.</div>
+      </div>
+
+      <div id="exPng" style="display:none">
+        <h3>Size</h3>
+        <label class="field"><span>Preset</span><select id="printPreset"></select></label>
+        <div class="two">
+          <label class="field"><span>Width</span><input type="number" inputmode="decimal" step="any" data-bind="print.w"></label>
+          <label class="field"><span>Height</span><input type="number" inputmode="decimal" step="any" data-bind="print.h"></label>
+        </div>
+        <div class="chips" data-chips="print.unit"><button data-v="px">px</button><button data-v="in">inch</button><button data-v="ft">feet</button><button data-v="cm">cm</button><button data-v="mm">mm</button></div>
+        <h3>Print resolution</h3>
+        <div class="chips" data-chips="print.dpi"><button data-v="72">72 dpi</button><button data-v="100">100<small>flex banners</small></button><button data-v="150">150</button><button data-v="300">300<small>paper, cards</small></button></div>
+        <div class="card"><div class="stat" id="printCalc"></div><div class="warn" id="printWarn"></div></div>
+        <div class="row"><div><b>Transparent background</b><small>Text and effects only, for stickers and overlays</small></div><label class="sw"><input type="checkbox" data-bind="print.transparent"><i></i></label></div>
+        <div class="range"><label>Frame to export</label><input type="range" min="0" max="30" step="0.1" data-bind="print.t"><output data-out="sec1"></output></div>
+        <div class="btnrow"><button class="btn primary block" id="btnRenderPng">Export PNG</button></div>
+        <div class="hint">Large sizes are drawn in strips, so memory stays low. The file is saved to Pictures/AiTechStudio with the dpi stored inside.</div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div id="ov"><div class="box">
+  <h2 id="ovTitle">Rendering</h2>
+  <div class="bar"><i id="ovBar"></i></div>
+  <div id="ovLabel">Starting…</div>
+  <div class="btnrow" style="margin-top:14px" id="ovBtns"><button class="btn danger block" id="ovCancel">Cancel</button></div>
+</div></div>
+<div id="toast"></div>
+
+<script src="engine.js"></script>
+<script>
+(function () {
+'use strict';
+var $ = function (s, r) { return (r || document).querySelector(s); };
+var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+var A = window.Android || null;
+var INFO = Engine.info();
+
+/* ------------------------------------------------------------------ state */
+var S = {
+  cfg: { scene: 'neon', title: 'Grand Opening Sale', subtitle: 'Flat 50% off this week', tagline: 'Fresh · Fast · Local', contact: '',
+    palette: 'neon', custom: { bg1: '#0b1020', bg2: '#2a0f4a', a1: '#22d3ee', a2: '#e879f9', text: '#ffffff' },
+    font: 'bold', anim: 'pop', vfx: Engine.defaultVfx(), intensity: 0.7, duration: 6, seed: 7, sfxPack: 'cinematic',
+    captions: [], captionsOn: false, captionStyle: 'karaoke', logo: false, bgVideo: false, bgDim: 0.35 },
+  audio: { enabled: true, quality: 'high', sfx: 0.9, bass: 2, air: 2, space: 0.25, width: 0.3, punch: 0.4 },
+  musicOpts: { gain: 0.5, start: 0, duck: true }, music: null,
+  voiceOpts: { gain: 1, start: 0.4, fx: 'studio', rate: 1, pitch: 1, voice: '', script: '' }, voice: null,
+  caps: { source: 'script', model: '' },
+  video: { w: 1080, h: 1920, fps: 30, quality: 'high' },
+  print: { preset: 'Story / Reel / Status', unit: 'px', w: 1080, h: 1920, dpi: 72, transparent: false, t: 3 },
+  exportTab: 'video', tab: 'design'
+};
+var RT = { t: 0, playing: true, dirty: true, last: 0, n: null, logoImg: null, bgThumb: null, bgVideoReady: false, bgInfo: null, busy: false, lastFrameMs: 0 };
+
+var VIDEO_SIZES = [
+  { id: '1080x1920', l: '9:16 · 1080×1920', s: 'Reels, Status', w: 1080, h: 1920 },
+  { id: '1080x1350', l: '4:5 · 1080×1350', s: 'Feed post', w: 1080, h: 1350 },
+  { id: '1080x1080', l: '1:1 · 1080×1080', s: 'Square', w: 1080, h: 1080 },
+  { id: '1920x1080', l: '16:9 · 1920×1080', s: 'YouTube', w: 1920, h: 1080 },
+  { id: '720x1280', l: '9:16 · 720×1280', s: 'Smaller file', w: 720, h: 1280 },
+  { id: '1280x720', l: '16:9 · 1280×720', s: 'Smaller file', w: 1280, h: 720 }
+];
+var PRINT_PRESETS = [
+  { g: 'Social', n: 'Story / Reel / Status', u: 'px', w: 1080, h: 1920, d: 72 },
+  { g: 'Social', n: 'Instagram post', u: 'px', w: 1080, h: 1080, d: 72 },
+  { g: 'Social', n: 'YouTube thumbnail', u: 'px', w: 1280, h: 720, d: 72 },
+  { g: 'Social', n: 'Facebook cover', u: 'px', w: 1640, h: 624, d: 72 },
+  { g: 'Social', n: 'LinkedIn banner', u: 'px', w: 1584, h: 396, d: 72 },
+  { g: 'Social', n: 'X header', u: 'px', w: 1500, h: 500, d: 72 },
+  { g: 'Flex banner', n: '2 × 3 ft', u: 'ft', w: 2, h: 3, d: 100 },
+  { g: 'Flex banner', n: '3 × 2 ft', u: 'ft', w: 3, h: 2, d: 100 },
+  { g: 'Flex banner', n: '3 × 4 ft', u: 'ft', w: 3, h: 4, d: 100 },
+  { g: 'Flex banner', n: '4 × 6 ft', u: 'ft', w: 4, h: 6, d: 100 },
+  { g: 'Flex banner', n: '6 × 3 ft', u: 'ft', w: 6, h: 3, d: 100 },
+  { g: 'Flex banner', n: '4 × 8 ft', u: 'ft', w: 4, h: 8, d: 100 },
+  { g: 'Flex banner', n: '8 × 4 ft', u: 'ft', w: 8, h: 4, d: 100 },
+  { g: 'Flex banner', n: '10 × 4 ft', u: 'ft', w: 10, h: 4, d: 100 },
+  { g: 'Flex banner', n: '12 × 4 ft', u: 'ft', w: 12, h: 4, d: 100 },
+  { g: 'Flex banner', n: '20 × 10 ft', u: 'ft', w: 20, h: 10, d: 72 },
+  { g: 'Flex banner', n: 'Roll-up standee 33 × 80 in', u: 'in', w: 33, h: 80, d: 100 },
+  { g: 'Paper', n: 'A4', u: 'cm', w: 21, h: 29.7, d: 300 },
+  { g: 'Paper', n: 'A3', u: 'cm', w: 29.7, h: 42, d: 300 },
+  { g: 'Paper', n: 'A2', u: 'cm', w: 42, h: 59.4, d: 200 },
+  { g: 'Paper', n: 'A1', u: 'cm', w: 59.4, h: 84.1, d: 150 },
+  { g: 'Paper', n: 'Letter', u: 'in', w: 8.5, h: 11, d: 300 },
+  { g: 'Cards', n: 'Visiting card 3.5 × 2 in', u: 'in', w: 3.5, h: 2, d: 300 },
+  { g: 'Cards', n: 'Postcard 6 × 4 in', u: 'in', w: 6, h: 4, d: 300 },
+  { g: 'Cards', n: 'Sticker 3 × 3 in', u: 'in', w: 3, h: 3, d: 300 }
+];
+var MAX_MP = 150, MAX_SIDE = 30000;
+var MM = { in: 25.4, ft: 304.8, cm: 10, mm: 1 };
+
+var FX_LIST = [
+  ['particles', 'Floating sparks', 'Ambient light particles'], ['burst', 'Burst on the hit', 'Sparks or confetti explode with the title'],
+  ['rings', 'Shockwave rings', 'Rings ripple out on the hit'], ['sweep', 'Light sweep', 'A bright streak crosses the frame'],
+  ['glow', 'Neon glow', 'Soft halo around the text'], ['chroma', 'RGB split', 'Red and cyan colour fringe'],
+  ['bloom', 'Bloom', 'Bright areas bleed light (video and preview only)'], ['shake', 'Camera shake', 'A short jolt on the hit'],
+  ['flash', 'Impact flash', 'White flash on the hit'], ['scan', 'Scanlines', 'Retro monitor lines'],
+  ['grain', 'Film grain', 'Fine noise for a filmic look'], ['vignette', 'Vignette', 'Darker edges']
+];
+
+/* ---------------------------------------------------------------- helpers */
+function getPath(o, p) { return p.split('.').reduce(function (a, k) { return a == null ? a : a[k]; }, o); }
+function setPath(o, p, v) { var ks = p.split('.'), l = ks.pop(); var t = ks.reduce(function (a, k) { return a[k]; }, o); t[l] = v; }
+function fmtT(s) { s = Math.max(0, s); var m = Math.floor(s / 60), r = Math.floor(s % 60); return m + ':' + (r < 10 ? '0' : '') + r; }
+function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+var toastTimer = 0;
+function toast(msg, err, ms) {
+  var t = $('#toast'); t.textContent = msg; t.className = 'on' + (err ? ' err' : '');
+  clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.className = ''; }, ms || 3200);
+}
+function native(name) {
+  if (!A || typeof A[name] !== 'function') { toast('This needs the Android app. The browser preview can only design.', true); return undefined; }
+  return A[name].apply(A, Array.prototype.slice.call(arguments, 1));
+}
+function makeCanvas(w, h) { var c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
+function save() { try { localStorage.setItem('aitech.studio.v1', JSON.stringify({ cfg: S.cfg, audio: S.audio, musicOpts: S.musicOpts, voiceOpts: S.voiceOpts, caps: S.caps, video: S.video, print: S.print, exportTab: S.exportTab })); } catch (e) { } }
+function load() {
+  try {
+    var j = JSON.parse(localStorage.getItem('aitech.studio.v1') || 'null'); if (!j) return;
+    ['cfg', 'audio', 'musicOpts', 'voiceOpts', 'caps', 'video', 'print'].forEach(function (k) { if (j[k]) Object.keys(j[k]).forEach(function (kk) { if (typeof S[k][kk] === 'object' && S[k][kk] && !Array.isArray(S[k][kk])) Object.assign(S[k][kk], j[k][kk]); else S[k][kk] = j[k][kk]; }); });
+    if (j.exportTab) S.exportTab = j.exportTab;
+    S.cfg.bgVideo = false; S.cfg.logo = false; // media files are not kept between launches
+  } catch (e) { }
+}
+
+/* ---------------------------------------------------------- change plumbing */
+function changed(opts) {
+  opts = opts || {};
+  RT.n = Engine.normalize(S.cfg); RT.dirty = true;
+  if (S.print.t == null || S.print.t > S.cfg.duration) S.print.t = Math.min(Engine.heroTime(RT.n), S.cfg.duration);
+  if (opts.fit !== false) fitPreview();
+  updateOutputs(); updatePrintCalc(); updateVideoEstimate(); updatePrompt();
+  if (!opts.nosave) save();
+  if (opts.thumbs) scheduleThumbs();
+}
+
+function syncUI() {
+  $$('[data-bind]').forEach(function (el) {
+    var v = getPath(S, el.getAttribute('data-bind'));
+    if (el.type === 'checkbox') el.checked = !!v;
+    else if (v !== undefined && v !== null && document.activeElement !== el) el.value = v;
+  });
+  $$('[data-chips]').forEach(function (g) {
+    var v = String(getPath(S, g.getAttribute('data-chips')));
+    $$('button', g).forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-v') === v); });
+  });
+  $$('.pal').forEach(function (p) { p.classList.toggle('on', p.getAttribute('data-id') === S.cfg.palette); });
+  $$('.scene').forEach(function (p) { p.classList.toggle('on', p.getAttribute('data-id') === S.cfg.scene); });
+  $$('#fxList input').forEach(function (i) { i.checked = !!S.cfg.vfx[i.getAttribute('data-fx')]; });
+  $('#customPal').style.display = S.cfg.palette === 'custom' ? 'block' : 'none';
+  $('#modelCard').style.display = S.caps.source === 'model' ? 'block' : 'none';
+  $('#exVideo').style.display = S.exportTab === 'video' ? 'block' : 'none';
+  $('#exPng').style.display = S.exportTab === 'png' ? 'block' : 'none';
+  $$('#vSizes button').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-v') === S.video.w + 'x' + S.video.h); });
+  updateOutputs();
+}
+
+function updateOutputs() {
+  $$('input[type=range][data-bind]').forEach(function (r) {
+    var o = r.parentNode.querySelector('output'); if (!o) return;
+    var v = +getPath(S, r.getAttribute('data-bind')), k = o.getAttribute('data-out');
+    o.textContent = k === 'pct' ? Math.round(v * 100) + '%' : k === 'sec' ? Math.round(v) + ' s' : k === 'sec1' ? (+v).toFixed(1) + ' s' : k === 'db' ? (v > 0 ? '+' : '') + v + ' dB' : k === 'x' ? (+v).toFixed(2) + '×' : v;
+  });
+  $('#tcode').textContent = fmtT(RT.t) + ' / ' + fmtT(S.cfg.duration);
+  var pr = $('input[data-bind="print.t"]'); if (pr) pr.max = S.cfg.duration;
+  var ms = $('input[data-bind="musicOpts.start"]'); if (ms && S.music) ms.max = Math.max(1, Math.floor(S.music.durationSec));
+  var cc = S.cfg.captions.length; $('#capCount').textContent = cc ? cc + ' words ready' : 'No captions yet';
+}
+
+function bindInputs() {
+  $$('[data-bind]').forEach(function (el) {
+    var path = el.getAttribute('data-bind');
+    var ev = (el.type === 'checkbox' || el.tagName === 'SELECT') ? 'change' : 'input';
+    el.addEventListener(ev, function () {
+      var v;
+      if (el.type === 'checkbox') v = el.checked;
+      else if (el.type === 'range' || el.type === 'number') v = parseFloat(el.value);
+      else v = el.value;
+      if (el.type === 'number' && isNaN(v)) return;
+      setPath(S, path, v);
+      if (path === 'cfg.duration') RT.t = Math.min(RT.t, v);
+      var thumbs = /^cfg\.(title|palette|custom|font)/.test(path);
+      if (path.indexOf('print.') === 0) { S.print.preset = ''; var ps = $('#printPreset'); if (ps) ps.value = ''; }
+      changed({ thumbs: thumbs, fit: path.indexOf('print.') === 0 || path.indexOf('video.') === 0 });
+      if (path === 'cfg.captionsOn' || path === 'cfg.bgVideo') syncBg();
+    });
+  });
+  $$('[data-chips]').forEach(function (g) {
+    g.addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b || !g.contains(b)) return;
+      var path = g.getAttribute('data-chips'), v = b.getAttribute('data-v');
+      var cur = getPath(S, path);
+      setPath(S, path, typeof cur === 'number' ? +v : v);
+      if (path === 'cfg.palette') { /* keep custom values */ }
+      if (path === 'exportTab') { RT.dirty = true; }
+      syncUI(); changed({ thumbs: /cfg\.(palette|font)/.test(path), fit: path === 'exportTab' || path === 'print.unit' });
+    });
+  });
+}
+
+/* ----------------------------------------------------------------- build UI */
+function buildStatic() {
+  $('#fontChips').innerHTML = INFO.fonts.map(function (f) { return '<button data-v="' + f.id + '">' + f.name + '</button>'; }).join('');
+  $('#animChips').innerHTML = INFO.anims.map(function (f) { return '<button data-v="' + f.id + '">' + f.name + '</button>'; }).join('');
+  $('#pals').innerHTML = INFO.palettes.map(function (p) {
+    var c = p.colors; return '<button class="pal" data-id="' + p.id + '" style="background:linear-gradient(135deg,' + c.bg2 + ' 0%,' + c.a1 + ' 55%,' + c.a2 + ' 100%)"><span>' + p.name + '</span></button>';
+  }).join('') + '<button class="pal" data-id="custom" style="background:conic-gradient(#f43f5e,#f59e0b,#22c55e,#06b6d4,#8b5cf6,#f43f5e)"><span>Custom</span></button>';
+  $('#pals').addEventListener('click', function (e) { var b = e.target.closest('.pal'); if (!b) return; S.cfg.palette = b.getAttribute('data-id'); syncUI(); changed({ thumbs: true }); });
+
+  $('#scenes').innerHTML = INFO.scenes.map(function (s) { return '<button class="scene" data-id="' + s.id + '"><canvas width="168" height="280"></canvas><span>' + s.name + '</span></button>'; }).join('');
+  $('#scenes').addEventListener('click', function (e) { var b = e.target.closest('.scene'); if (b) chooseScene(b.getAttribute('data-id')); });
+
+  $('#fxList').innerHTML = FX_LIST.map(function (f) {
+    return '<div class="row"><div><b>' + f[1] + '</b><small>' + f[2] + '</small></div><label class="sw"><input type="checkbox" data-fx="' + f[0] + '"><i></i></label></div>';
+  }).join('');
+  $('#fxList').addEventListener('change', function (e) { var k = e.target.getAttribute('data-fx'); if (!k) return; S.cfg.vfx[k] = e.target.checked; changed(); });
+
+  $('#vSizes').innerHTML = VIDEO_SIZES.map(function (s) { return '<button data-v="' + s.id + '">' + s.l + '<small>' + s.s + '</small></button>'; }).join('');
+  $('#vSizes').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return; var z = VIDEO_SIZES.filter(function (s) { return s.id === b.getAttribute('data-v'); })[0];
+    S.video.w = z.w; S.video.h = z.h; syncUI(); changed();
+  });
+
+  var groups = {}; PRINT_PRESETS.forEach(function (p) { (groups[p.g] = groups[p.g] || []).push(p); });
+  $('#printPreset').innerHTML = '<option value="">Custom size</option>' + Object.keys(groups).map(function (g) {
+    return '<optgroup label="' + g + '">' + groups[g].map(function (p) { return '<option value="' + esc(p.n) + '">' + esc(p.n) + '</option>'; }).join('') + '</optgroup>';
+  }).join('');
+  $('#printPreset').addEventListener('change', function () {
+    var p = PRINT_PRESETS.filter(function (x) { return x.n === $('#printPreset').value; })[0]; if (!p) return;
+    S.print.preset = p.n; S.print.unit = p.u; S.print.w = p.w; S.print.h = p.h; S.print.dpi = p.d; syncUI(); changed({ fit: true });
+  });
+
+  $('#tabs').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    S.tab = b.getAttribute('data-tab');
+    $$('#tabs button').forEach(function (x) { x.classList.toggle('on', x === b); });
+    $$('.panel').forEach(function (p) { p.classList.toggle('on', p.getAttribute('data-panel') === S.tab); });
+    $('#panels').scrollTop = 0; RT.dirty = true; fitPreview();
+    if (S.tab === 'voice') refreshVoices();
+  });
+}
+
+function chooseScene(id) {
+  var sc = INFO.scenes.filter(function (s) { return s.id === id; })[0]; if (!sc) return;
+  S.cfg.scene = id; S.cfg.font = sc.defaults.font; S.cfg.anim = sc.defaults.anim;
+  if (S.cfg.palette !== 'custom') S.cfg.palette = sc.defaults.palette;
+  S.cfg.vfx = Object.assign(Engine.defaultVfx(), sc.defaults.vfx || {});
+  RT.t = 0; syncUI(); changed({ thumbs: true });
+}
+
+/* ------------------------------------------------------------ thumbnails */
+var thumbTimer = 0;
+function scheduleThumbs() { clearTimeout(thumbTimer); thumbTimer = setTimeout(renderThumbs, 250); }
+function renderThumbs() {
+  $$('.scene').forEach(function (el) {
+    var c = $('canvas', el), ctx = c.getContext('2d');
+    var cfg = JSON.parse(JSON.stringify(S.cfg)); cfg.scene = el.getAttribute('data-id'); cfg.captionsOn = false; cfg.bgVideo = false; cfg.logo = false;
+    var d = INFO.scenes.filter(function (s) { return s.id === cfg.scene; })[0].defaults;
+    cfg.font = d.font; cfg.anim = d.anim; if (cfg.palette !== 'custom') cfg.palette = S.cfg.palette; cfg.vfx = Object.assign(Engine.defaultVfx(), d.vfx || {}, { bloom: false });
+    try { Engine.render(ctx, Engine.normalize(cfg), 0, c.width, c.height, { still: true, createCanvas: makeCanvas }); } catch (e) { }
+  });
+}
+
+/* --------------------------------------------------------- preview canvas */
+var pv = $('#pv'), pctx = pv.getContext('2d'), tl = $('#tl'), tctx = tl.getContext('2d');
+function activeSize() {
+  if (S.tab === 'export' && S.exportTab === 'png') { var d = printDims(); return { w: d.W, h: d.H }; }
+  return { w: S.video.w, h: S.video.h };
+}
+function fitPreview() {
+  var box = $('#pvbox'), a = activeSize(), asp = a.w / a.h;
+  var aw = box.clientWidth, ah = box.clientHeight; if (!aw || !ah) return;
+  var cw = Math.min(aw, ah * asp), ch = cw / asp;
+  var dpr = Math.min(window.devicePixelRatio || 1, 2);
+  var pw = Math.round(cw * dpr), ph = Math.round(ch * dpr);
+  var mp = pw * ph; if (mp > 1.1e6) { var k = Math.sqrt(1.1e6 / mp); pw = Math.round(pw * k); ph = Math.round(ph * k); }
+  if (pv.width !== pw || pv.height !== ph) { pv.width = pw; pv.height = ph; }
+  pv.style.width = cw + 'px'; pv.style.height = ch + 'px'; RT.dirty = true;
+  var tw = Math.round(tl.clientWidth * dpr), th = Math.round(36 * dpr);
+  if (tl.width !== tw || tl.height !== th) { tl.width = tw; tl.height = th; }
+}
+function bgSource() {
+  if (!S.cfg.bgVideo) return null;
+  var v = $('#bgv'); if (RT.bgVideoReady && v.videoWidth) return v;
+  return RT.bgThumb;
+}
+function drawPreview() {
+  var still = S.tab === 'export' && S.exportTab === 'png';
+  var t = still ? (S.print.t == null ? Engine.heroTime(RT.n) : S.print.t) : RT.t;
+  try {
+    Engine.render(pctx, RT.n, t, pv.width, pv.height, { still: still, t: t, logo: RT.logoImg, bgImage: bgSource(), createCanvas: makeCanvas, transparent: still && S.print.transparent });
+  } catch (e) { console.log('preview error ' + e); }
+}
+var CUE_COLORS = { impact: '#ff6a3d', riser: '#ffb21e', whoosh: '#35d0c0', sparkle: '#e879f9', ding: '#7dd3fc', tick: '#8c97a9', zap: '#ff2e93', pop: '#a3e635', pad: '#3b475a' };
+function drawTimeline() {
+  var W = tl.width, H = tl.height, D = S.cfg.duration, dpr = H / 36;
+  tctx.clearRect(0, 0, W, H);
+  tctx.fillStyle = '#2a3342'; tctx.fillRect(0, H / 2 - 3 * dpr, W, 6 * dpr);
+  var px = RT.t / D * W;
+  tctx.fillStyle = '#ffb21e'; tctx.fillRect(0, H / 2 - 3 * dpr, px, 6 * dpr);
+  if (S.audio.enabled) {
+    Engine.cues(RT.n).forEach(function (c) {
+      if (c.type === 'pad') return;
+      tctx.fillStyle = CUE_COLORS[c.type] || '#8c97a9';
+      var x = c.t / D * W; tctx.fillRect(x - 1 * dpr, H / 2 + 5 * dpr, 2 * dpr, 7 * dpr);
+    });
+  }
+  if (S.voice) { var x0 = S.voiceOpts.start / D * W, x1 = Math.min(W, (S.voiceOpts.start + S.voice.durationSec) / D * W); tctx.fillStyle = 'rgba(53,208,192,.55)'; tctx.fillRect(x0, H / 2 - 12 * dpr, Math.max(2, x1 - x0), 4 * dpr); }
+  var hx = INFO.scenes.filter(function (s) { return s.id === S.cfg.scene; })[0].hit / D * W;
+  tctx.fillStyle = '#fff'; tctx.beginPath(); tctx.moveTo(hx, H / 2 - 11 * dpr); tctx.lineTo(hx + 4 * dpr, H / 2 - 7 * dpr); tctx.lineTo(hx, H / 2 - 3 * dpr); tctx.lineTo(hx - 4 * dpr, H / 2 - 7 * dpr); tctx.fill();
+  tctx.fillStyle = '#fff'; tctx.beginPath(); tctx.arc(px, H / 2, 7 * dpr, 0, 6.2832); tctx.fill();
+}
+function loop(now) {
+  requestAnimationFrame(loop);
+  if (RT.busy) return;
+  var dt = RT.last ? Math.min(0.1, (now - RT.last) / 1000) : 0; RT.last = now;
+  var still = S.tab === 'export' && S.exportTab === 'png';
+  if (RT.playing && !still) { RT.t += dt; if (RT.t >= S.cfg.duration) RT.t = 0; RT.dirty = true; $('#tcode').textContent = fmtT(RT.t) + ' / ' + fmtT(S.cfg.duration); }
+  if (RT.dirty && now - RT.lastFrameMs > 28) { RT.lastFrameMs = now; RT.dirty = false; drawPreview(); drawTimeline(); }
+}
+function scrub(e) {
+  var r = tl.getBoundingClientRect(); var x = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
+  RT.t = Math.max(0, Math.min(S.cfg.duration - 0.001, x / r.width * S.cfg.duration)); RT.dirty = true; syncBgTime(); updateOutputs();
+}
+var scrubbing = false;
+tl.addEventListener('pointerdown', function (e) { scrubbing = true; tl.setPointerCapture(e.pointerId); scrub(e); });
+tl.addEventListener('pointermove', function (e) { if (scrubbing) scrub(e); });
+tl.addEventListener('pointerup', function () { scrubbing = false; });
+$('#btnPlay').addEventListener('click', function () { RT.playing = !RT.playing; $('#btnPlay').textContent = RT.playing ? '❚❚' : '▶'; var v = $('#bgv'); if (RT.bgVideoReady) { if (RT.playing) v.play(); else v.pause(); } });
+window.addEventListener('resize', fitPreview);
+
+/* -------------------------------------------------------- background clip */
+function syncBgTime() { var v = $('#bgv'); if (RT.bgVideoReady && v.duration) { try { v.currentTime = RT.t % v.duration; } catch (e) { } } }
+function syncBg() {
+  var v = $('#bgv');
+  if (S.cfg.bgVideo && RT.bgVideoReady) { if (RT.playing) v.play().catch(function () { }); } else if (v) v.pause();
+  RT.dirty = true;
+}
+function longcatPromptText() {
+  var mood = {
+    neon: 'glowing neon light trails and soft bokeh in deep violet and cyan, drifting slowly',
+    glitch: 'a dark futuristic data tunnel with thin cyan and magenta light lines pulsing',
+    cinema: 'warm golden dust particles floating through a dark cinematic room with a soft spotlight',
+    burst: 'colourful abstract shapes and confetti-like light flecks swirling with joyful energy',
+    aurora: 'flowing aurora ribbons of icy blue and violet light over a dark sky',
+    retro: 'a neon synthwave sunset over a glowing grid road, slow forward motion',
+    banner: 'warm festive abstract light patterns in orange and gold with soft bokeh'
+  }[S.cfg.scene] || 'soft flowing abstract light';
+  return 'A seamless abstract motion-graphics background: ' + mood + '. Smooth slow motion, cinematic lighting, high detail, subject kept near the centre, no text, no logos, no people.';
+}
+function updatePrompt() { var el = $('#lcPrompt'); if (el) el.textContent = longcatPromptText(); }
+$('#btnCopyPrompt').addEventListener('click', function () {
+  var txt = longcatPromptText();
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(function () { toast('Prompt copied'); }, function () { if (A && A.copyText) { A.copyText(txt); toast('Prompt copied'); } });
+  else if (A && A.copyText) { A.copyText(txt); toast('Prompt copied'); } else toast('Select the prompt text and copy it');
+});
+$('#btnBg').addEventListener('click', function () { native('pickBgVideo'); });
+$('#btnBgClear').addEventListener('click', function () {
+  RT.bgVideoReady = false; RT.bgThumb = null; RT.bgInfo = null; S.cfg.bgVideo = false; var v = $('#bgv'); v.removeAttribute('src'); v.load();
+  $('#bgName').textContent = 'No clip imported'; if (A && A.clearBgVideo) A.clearBgVideo(); syncUI(); changed();
+});
+
+/* -------------------------------------------------------------- logo */
+$('#btnLogo').addEventListener('click', function () { native('pickImage'); });
+
+/* -------------------------------------------------------------- sound */
+$('#btnMusic').addEventListener('click', function () { native('pickAudio'); });
+$('#btnMusicClear').addEventListener('click', function () { S.music = null; if (A && A.clearAudio) A.clearAudio('music'); $('#musicName').textContent = 'No music added. MP3, M4A, WAV and OGG work.'; changed(); });
+function audioPayload() {
+  return {
+    enabled: !!S.audio.enabled, quality: S.audio.quality, sfxGain: S.audio.sfx,
+    master: { bass: S.audio.bass, air: S.audio.air, space: S.audio.space, width: S.audio.width, punch: S.audio.punch },
+    cues: Engine.cues(RT.n),
+    music: S.music ? { gain: S.musicOpts.gain, start: S.musicOpts.start, duck: !!S.musicOpts.duck } : null,
+    voice: S.voice ? { gain: S.voiceOpts.gain, start: S.voiceOpts.start, fx: S.voiceOpts.fx } : null
+  };
+}
+var previewing = false;
+$('#btnPreviewSound').addEventListener('click', function () {
+  if (previewing) { native('stopAudioPreview'); return; }
+  var r = native('previewAudio', JSON.stringify({ duration: S.cfg.duration, audio: audioPayload() }));
+  if (r === true) { previewing = true; $('#btnPreviewSound').textContent = 'Preparing…'; }
+});
+
+/* -------------------------------------------------------------- voice */
+function refreshVoices() { if (A && A.listVoices) { try { Studio.onVoices(JSON.parse(A.listVoices())); } catch (e) { } if (A.listModels) { try { Studio.onModels(JSON.parse(A.listModels())); } catch (e) { } } } }
+$('#btnScriptFromTitle').addEventListener('click', function () { S.voiceOpts.script = [S.cfg.title, S.cfg.subtitle, S.cfg.tagline].filter(Boolean).join('. '); syncUI(); save(); });
+$('#btnSynth').addEventListener('click', function () {
+  if (!S.voiceOpts.script.trim()) { S.voiceOpts.script = [S.cfg.title, S.cfg.subtitle].filter(Boolean).join('. '); syncUI(); }
+  var r = native('synthVoice', JSON.stringify({ text: S.voiceOpts.script, voice: S.voiceOpts.voice, rate: S.voiceOpts.rate, pitch: S.voiceOpts.pitch }));
+  if (r === true) $('#voiceStatus').textContent = 'Creating voice-over…';
+});
+$('#btnVoiceFile').addEventListener('click', function () { native('pickVoice'); });
+$('#btnVoiceClear').addEventListener('click', function () { S.voice = null; S.cfg.captions = []; if (A && A.clearAudio) A.clearAudio('voice'); $('#voiceStatus').textContent = 'No voice-over yet'; changed(); });
+$('#btnModel').addEventListener('click', function () { native('pickModel'); });
+$('#btnCaps').addEventListener('click', function () {
+  if (!S.voice) { toast('Create or add a voice-over first', true); return; }
+  if (S.caps.source === 'model') {
+    if (!S.caps.model) { toast('Import a speech model first', true); return; }
+    var r = native('transcribeVoice', JSON.stringify({ model: S.caps.model }));
+    if (r === true) toast('Listening to the voice-over…');
+  } else {
+    var script = S.voiceOpts.script.trim() || [S.cfg.title, S.cfg.subtitle].filter(Boolean).join(' ');
+    S.cfg.captions = Engine.quickCaptions(script, S.voice.durationSec, S.voiceOpts.start); S.cfg.captionsOn = true; syncUI(); changed(); toast(S.cfg.captions.length + ' caption words ready');
+  }
+});
+
+/* -------------------------------------------------------------- export math */
+function printDims() {
+  var p = S.print, dpi = +p.dpi || 72, W, H, eff = dpi, note = '', inW = 0, inH = 0;
+  var w = Math.max(0.1, +p.w || 1), h = Math.max(0.1, +p.h || 1);
+  if (p.unit === 'px') { W = Math.round(w); H = Math.round(h); inW = W / dpi; inH = H / dpi; }
+  else { inW = w * MM[p.unit] / 25.4; inH = h * MM[p.unit] / 25.4; W = Math.round(inW * dpi); H = Math.round(inH * dpi); }
+  var limited = false;
+  var scale = Math.min(1, Math.sqrt(MAX_MP * 1e6 / (W * H)), MAX_SIDE / Math.max(W, H));
+  if (scale < 1) { limited = true; if (p.unit === 'px') { W = Math.floor(W * scale); H = Math.floor(H * scale); eff = dpi * scale; } else { eff = dpi * scale; W = Math.round(inW * eff); H = Math.round(inH * eff); } }
+  W = Math.max(16, W); H = Math.max(16, H);
+  return { W: W, H: H, dpi: Math.round(eff), limited: limited, inW: inW, inH: inH, mp: W * H / 1e6 };
+}
+function updatePrintCalc() {
+  var d = printDims(), p = S.print;
+  $('#printCalc').textContent = d.W + ' × ' + d.H + ' px · ' + d.mp.toFixed(1) + ' MP · ' + d.inW.toFixed(1) + ' × ' + d.inH.toFixed(1) + ' in at ' + d.dpi + ' dpi';
+  var w = '';
+  if (d.limited) w = 'Too large for this phone, so resolution was lowered to ' + d.dpi + ' dpi. The printed size stays the same.';
+  else if (d.mp > 60) w = 'Very large file. Export takes a few minutes.';
+  else if (p.unit !== 'px' && d.dpi < 60) w = 'Low resolution. Fine for banners viewed from far away.';
+  $('#printWarn').textContent = w;
+}
+function videoBitrate() {
+  var px = S.video.w * S.video.h, f = { standard: 3.2, high: 5.5, max: 9 }[S.video.quality] || 5.5;
+  return Math.round(px * (S.video.fps / 30) * f * 0.5 / 1000) * 1000 * 1; // bits per second
+}
+function updateVideoEstimate() {
+  var br = videoBitrate(), mb = (br + (S.audio.enabled ? 192000 : 0)) / 8 * S.cfg.duration / 1e6;
+  var frames = Math.ceil(S.cfg.duration * S.video.fps);
+  $('#vEstimate').textContent = frames + ' frames · about ' + mb.toFixed(1) + ' MB · ' + (br / 1e6).toFixed(1) + ' Mbps';
+}
+function slug() { return (S.cfg.title || 'video').replace(/[^\wఀ-౿]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 24) || 'studio'; }
+function stamp() { var d = new Date(); function z(n) { return (n < 10 ? '0' : '') + n; } return d.getFullYear() + z(d.getMonth() + 1) + z(d.getDate()) + '_' + z(d.getHours()) + z(d.getMinutes()); }
+
+/* ------------------------------------------------------------ overlay */
+function showOverlay(title) {
+  $('#ovTitle').textContent = title; $('#ovBar').style.width = '0%'; $('#ovLabel').textContent = 'Starting…';
+  $('#ovBtns').innerHTML = '<button class="btn danger block" id="ovCancel">Cancel</button>';
+  $('#ovCancel').onclick = function () { if (A) A.cancelExport(); $('#ovLabel').textContent = 'Cancelling…'; };
+  $('#ov').className = 'on'; RT.busy = true;
+}
+function hideOverlay() { $('#ov').className = ''; RT.busy = false; RT.dirty = true; }
+
+$('#btnRenderVideo').addEventListener('click', function () {
+  if (!A) { toast('Rendering needs the Android app.', true); return; }
+  var cfg = Engine.normalize(Object.assign({}, S.cfg, { transparent: false }));
+  var cv = makeCanvas(S.video.w, S.video.h);
+  Studio._exp = { w: S.video.w, h: S.video.h, fps: S.video.fps, q: S.video.quality === 'max' ? 0.97 : S.video.quality === 'high' ? 0.93 : 0.88, cfg: cfg, canvas: cv, ctx: cv.getContext('2d') };
+  var payload = {
+    kind: 'video', fileName: 'AiTech_' + slug() + '_' + stamp(), width: S.video.w, height: S.video.h, fps: S.video.fps,
+    duration: S.cfg.duration, bitrate: videoBitrate(), bg: !!(S.cfg.bgVideo && RT.bgInfo), audio: audioPayload()
+  };
+  showOverlay('Rendering video'); RT.playing = false; $('#btnPlay').textContent = '▶';
+  A.startVideoExport(JSON.stringify(payload));
+});
+$('#btnRenderPng').addEventListener('click', function () {
+  if (!A) { toast('Exporting needs the Android app.', true); return; }
+  var d = printDims(), cfg = Engine.normalize(S.cfg);
+  var cv = makeCanvas(16, 16);
+  Studio._prn = { W: d.W, H: d.H, t: S.print.t, cfg: cfg, canvas: cv, transparent: !!S.print.transparent };
+  var sh = Math.max(16, Math.min(512, Math.floor(6e6 / d.W)));
+  showOverlay('Exporting image');
+  A.startPngExport(JSON.stringify({ kind: 'png', fileName: 'AiTech_' + slug() + '_' + d.W + 'x' + d.H + '_' + stamp(), width: d.W, height: d.H, dpi: d.dpi, alpha: !!S.print.transparent, stripHeight: sh }));
+});
+
+/* --------------------------------------------- bridge: native -> studio */
+var Studio = window.Studio = {
+  _exp: null, _prn: null,
+  exportFrame: function (i, bgUrl) {
+    var x = Studio._exp;
+    var run = function (bgImg) {
+      try {
+        Engine.render(x.ctx, x.cfg, i / x.fps, x.w, x.h, { logo: RT.logoImg, bgImage: bgImg, createCanvas: makeCanvas });
+        A.onFrame(i, x.canvas.toDataURL('image/jpeg', x.q));
+      } catch (e) { A.onJsError(String(e && e.message || e)); }
+    };
+    if (bgUrl) { var im = new Image(); im.onload = function () { run(im); }; im.onerror = function () { A.onJsError('Could not read background frame'); }; im.src = bgUrl; }
+    else run(null);
+  },
+  exportStrip: function (y0, h) {
+    var x = Studio._prn;
+    try {
+      if (x.canvas.width !== x.W || x.canvas.height !== h) { x.canvas.width = x.W; x.canvas.height = h; }
+      var ctx = x.canvas.getContext('2d');
+      Engine.render(ctx, x.cfg, x.t, x.W, x.H, { still: true, t: x.t, offsetY: y0, transparent: x.transparent, logo: RT.logoImg, bgImage: bgSource() === $('#bgv') ? RT.bgThumb : bgSource(), createCanvas: makeCanvas });
+      A.onStrip(y0, h, x.canvas.toDataURL('image/png'));
+    } catch (e) { A.onJsError(String(e && e.message || e)); }
+  },
+  onProgress: function (p, label) { $('#ovBar').style.width = Math.round(p * 100) + '%'; $('#ovLabel').textContent = label || ''; },
+  onDone: function (info) {
+    $('#ovTitle').textContent = 'Saved'; $('#ovBar').style.width = '100%'; $('#ovLabel').textContent = info.where;
+    var b = '';
+    if (info.uri) b += '<button class="btn primary" id="ovOpen">Open</button><button class="btn" id="ovShare">Share</button>';
+    b += '<button class="btn" id="ovClose">Close</button>';
+    $('#ovBtns').innerHTML = b;
+    if (info.uri) { $('#ovOpen').onclick = function () { A.openUri(info.uri, info.mime); }; $('#ovShare').onclick = function () { A.shareUri(info.uri, info.mime); }; }
+    $('#ovClose').onclick = hideOverlay; RT.busy = true;
+  },
+  onError: function (msg) {
+    $('#ovTitle').textContent = 'Something went wrong'; $('#ovLabel').textContent = msg; $('#ovBtns').innerHTML = '<button class="btn block" id="ovClose">Close</button>';
+    $('#ovClose').onclick = hideOverlay;
+    if (!$('#ov').classList.contains('on')) toast(msg, true, 5000);
+    var pb = $('#btnPreviewSound'); previewing = false; if (pb) pb.textContent = 'Preview sound';
+    if ($('#voiceStatus').textContent.indexOf('Creating') === 0) $('#voiceStatus').textContent = S.voice ? 'Voice ready' : 'No voice-over yet';
+  },
+  onCancelled: function () { hideOverlay(); toast('Export cancelled'); },
+  onToast: function (m) { toast(m); },
+  onImagePicked: function (url, name) {
+    var im = new Image(); im.onload = function () { RT.logoImg = im; S.cfg.logo = true; $('#logoName').textContent = name || 'Logo added'; syncUI(); changed(); }; im.src = url;
+  },
+  onBgVideoPicked: function (info) {
+    RT.bgInfo = info; $('#bgName').textContent = info.name + ' · ' + info.durationSec.toFixed(1) + ' s · ' + info.w + '×' + info.h;
+    var th = new Image(); th.onload = function () { RT.bgThumb = th; S.cfg.bgVideo = true; syncUI(); changed(); }; th.src = info.thumb;
+    var v = $('#bgv'); RT.bgVideoReady = false;
+    v.onloadeddata = function () { RT.bgVideoReady = true; syncBg(); };
+    v.onerror = function () { RT.bgVideoReady = false; };
+    v.src = info.url; v.load();
+  },
+  onAudioPicked: function (info) {
+    S.music = info; $('#musicName').textContent = info.name + ' · ' + fmtT(info.durationSec); changed();
+  },
+  onVoiceReady: function (info) {
+    S.voice = info; $('#voiceStatus').textContent = 'Voice ready · ' + info.durationSec.toFixed(1) + ' s · ' + info.name;
+    var end = S.voiceOpts.start + info.durationSec + 0.8;
+    if (end > S.cfg.duration) { S.cfg.duration = Math.min(60, Math.ceil(end)); toast('Video length extended to ' + S.cfg.duration + ' s to fit the voice'); }
+    syncUI(); changed();
+  },
+  onVoices: function (list) {
+    var sel = $('#voiceSel'); var cur = S.voiceOpts.voice;
+    sel.innerHTML = '<option value="">Phone default</option>' + list.map(function (v) { return '<option value="' + esc(v.name) + '">' + esc(v.label) + '</option>'; }).join('');
+    sel.value = cur; if (sel.value !== cur) S.voiceOpts.voice = '';
+    $('#voiceCount').textContent = list.length + ' offline';
+  },
+  onModels: function (list) {
+    var sel = $('#modelSel'); sel.innerHTML = list.length ? list.map(function (m) { return '<option value="' + esc(m) + '">' + esc(m) + '</option>'; }).join('') : '<option value="">None imported</option>';
+    if (list.length && list.indexOf(S.caps.model) < 0) S.caps.model = list[0]; if (!list.length) S.caps.model = '';
+    sel.value = S.caps.model;
+  },
+  onCaptionsReady: function (words) {
+    var off = S.voiceOpts.start; S.cfg.captions = words.map(function (w) { return { w: w.w, s: w.s + off, e: w.e + off }; });
+    S.cfg.captionsOn = S.cfg.captions.length > 0; syncUI(); changed(); toast(S.cfg.captions.length ? S.cfg.captions.length + ' words timed by the offline model' : 'The model heard no speech', !S.cfg.captions.length);
+  },
+  onPreviewState: function (state) {
+    previewing = state === 'playing'; $('#btnPreviewSound').textContent = previewing ? 'Stop preview' : 'Preview sound';
+  }
+};
+
+/* -------------------------------------------------------------------- init */
+load();
+buildStatic();
+bindInputs();
+RT.n = Engine.normalize(S.cfg);
+if (A && A.deviceInfo) { try { var di = JSON.parse(A.deviceInfo()); $('#netPill').textContent = 'Offline · ' + di.model; } catch (e) { } }
+else $('#netPill').textContent = 'Browser preview · design only';
+syncUI(); changed({ thumbs: true });
+fitPreview();
+setTimeout(refreshVoices, 900);
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
