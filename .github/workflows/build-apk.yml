@@ -21,11 +21,18 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install SDK platform and build tools
-        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+      # GitHub's Ubuntu runners already include the Android SDK. Just make sure licences are accepted
+      # and the platform and build tools we need are present.
+      - name: Android SDK packages
+        run: |
+          echo "ANDROID_HOME=${ANDROID_HOME:-unset}"
+          SDKM="${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager"
+          [ -x "$SDKM" ] || SDKM="$(command -v sdkmanager || true)"
+          echo "sdkmanager: ${SDKM:-not found}"
+          {
+            yes | "$SDKM" --licenses > /dev/null || true
+            "$SDKM" "platforms;android-35" "build-tools;35.0.0"
+          } 2>&1 | tee sdk.log
 
       - name: Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -51,12 +58,12 @@ jobs:
       - name: Build APKs (with offline speech engine)
         id: with_vosk
         continue-on-error: true
-        run: gradle :app:assembleDebug :app:assembleRelease -PwithVosk=true --stacktrace
+        run: gradle :app:assembleDebug :app:assembleRelease -PwithVosk=true --stacktrace 2>&1 | tee build-vosk.log
 
       # If Vosk could not be fetched, build again without it. Everything else still works.
       - name: Build APKs (without speech engine)
         if: steps.with_vosk.outcome == 'failure'
-        run: gradle :app:assembleDebug :app:assembleRelease -PwithVosk=false --stacktrace
+        run: gradle :app:assembleDebug :app:assembleRelease -PwithVosk=false --stacktrace 2>&1 | tee build-novosk.log
 
       - name: Collect APKs
         run: |
@@ -89,6 +96,17 @@ jobs:
             echo ""
             echo "This build only: https://github.com/${{ github.repository }}/releases/tag/${TAG}"
           } >> "$GITHUB_STEP_SUMMARY"
+
+      # If anything fails, copy the end of each log into a readable error annotation on the run page.
+      - name: Show failure details
+        if: failure()
+        run: |
+          for f in sdk.log build-vosk.log build-novosk.log; do
+            if [ -f "$f" ]; then
+              MSG="$(grep -v '^$' "$f" | tail -n 45 | cut -c1-400 | sed 's/%/%25/g' | awk 'BEGIN{ORS="%0A"}1')"
+              echo "::error title=Last lines of $f::${MSG}"
+            fi
+          done
 
       # Backup: the same files as a zipped workflow artifact.
       - uses: actions/upload-artifact@v4
